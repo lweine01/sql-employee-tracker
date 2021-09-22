@@ -107,14 +107,13 @@ function addDepartment() {
         INSERT INTO department (name)
         VALUES (?)`, response.departmentName, function(err){
             if(err) return console.log(err);
-            console.table(department);
             initialQuestions();
         })
     })
 }
 
 function addRole() {
-    db.query(`SELECT * FROM department`, function (err, results) {
+    db.query(`SELECT * FROM department`, function (err, departments) {
         if(err) return console.log(err);
         
         inquirer.prompt([
@@ -132,26 +131,23 @@ function addRole() {
                 type: 'list',
                 name: 'deptName',
                 message: 'Which department should this role belong?',
-                choices: function deptName () {
-                    deptNameArr = [];
-                    for(let i=0; i < results.length; i++){
-                        deptIdArr.push(results[i].name);
-                    }
-                    return deptNameArr;
-                }
+                choices: departments.map(department => 
+                    ({
+                        name: department.name,
+                        value: department.id
+                    })
+                )
             }
         ]).then((response) => {
-                for(let i=0; i < results.length; i++){
-                    db.query(`
-                    INSERT INTO role (title, salary, department_id)
-                    VALUES (?, ?, ?)`, 
-                    [response.roleTitle, response.roleSalary, results[i].department_id], 
-                    function(err){
-                        if(err) return console.log(err);
-                        console.table(department);
-                        initialQuestions();
-                    })
-                }
+            console.log(response.deptName);
+                db.query(`
+                INSERT INTO role (title, salary, department_id)
+                VALUES (?, ?, ?)`, 
+                [response.roleTitle, response.roleSalary, response.deptName], 
+                function(err){
+                    if(err) return console.log(err);
+                    initialQuestions();
+                })
             }
         )
     });

@@ -11,11 +11,6 @@ const db = mysql.createConnection(
     console.log(`Connected to the employee_db database.`)
   );
 
-db.query(`SELECT * FROM movies`, function (err, results) {
-    if(err) return res.status(500).json(err);
-    return res.json(results);
-});
-
 initialQuestions();
 
 function initialQuestions () {
@@ -31,10 +26,11 @@ function initialQuestions () {
                 'Add a Department',
                 'Add a Role',
                 'Add an Employee',
-                'Update an Employee Role'
+                'Update an Employee Role',
+                'Quit'
             ]
         }
-    ]).then(function (response) {
+    ]).then((response) => {
         switch (response.starter){
             case 'View All Departments':
                 viewDepartment();
@@ -63,6 +59,100 @@ function initialQuestions () {
             case 'Update an Employee Role':
                 updateRole();
                 break;
+            
+            case 'Quit':
+                console.log('Goodbye');
+                break;
+
         }
+    }).catch((err) => {
+        console.log(err);
+        initialQuestions();
     })
+}
+
+function viewDepartment() {
+    db.query(`SELECT * FROM department`, function (err, results) {
+        if(err) return console.log(err);
+        console.table(results);
+        initialQuestions();
+    });
+}
+
+function viewRoles() {
+    db.query(`SELECT * FROM role`, function (err, results) {
+        if(err) return console.log(err);
+        console.table(results);
+        initialQuestions();
+    });
+}
+
+function viewEmployees() {
+    db.query(`SELECT * FROM employee`, function (err, results) {
+        if(err) return console.log(err);
+        console.table(results);
+        initialQuestions();
+    });
+}
+
+function addDepartment() {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'departmentName',
+            message: 'What is the name of the new department?'
+        }
+    ]).then ((response) => {
+        db.query(`
+        INSERT INTO department (name)
+        VALUES (?)`, response.departmentName, function(err){
+            if(err) return console.log(err);
+            console.table(department);
+            initialQuestions();
+        })
+    })
+}
+
+function addRole() {
+    db.query(`SELECT * FROM department`, function (err, results) {
+        if(err) return console.log(err);
+        
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'roleTitle',
+                message: 'What is the title of the new role?'
+            },
+            {
+                type: 'input',
+                name: 'roleSalary',
+                message: 'What is the salary?'
+            },
+            {
+                type: 'list',
+                name: 'deptName',
+                message: 'Which department should this role belong?',
+                choices: function deptName () {
+                    deptNameArr = [];
+                    for(let i=0; i < results.length; i++){
+                        deptIdArr.push(results[i].name);
+                    }
+                    return deptNameArr;
+                }
+            }
+        ]).then((response) => {
+                for(let i=0; i < results.length; i++){
+                    db.query(`
+                    INSERT INTO role (title, salary, department_id)
+                    VALUES (?, ?, ?)`, 
+                    [response.roleTitle, response.roleSalary, results[i].department_id], 
+                    function(err){
+                        if(err) return console.log(err);
+                        console.table(department);
+                        initialQuestions();
+                    })
+                }
+            }
+        )
+    });
 }

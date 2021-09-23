@@ -11,6 +11,17 @@ const db = mysql.createConnection(
     console.log(`Connected to the employee_db database.`)
 );
 
+console.log(
+    ` _______  __   __  _______  ___      _______  __   __  _______  _______    _______  ______    _______  _______  ___   _  _______  ______   
+|       ||  |_|  ||       ||   |    |       ||  | |  ||       ||       |  |       ||    _ |  |   _   ||       ||   | | ||       ||    _ |  
+|    ___||       ||    _  ||   |    |   _   ||  |_|  ||    ___||    ___|  |_     _||   | ||  |  |_|  ||       ||   |_| ||    ___||   | ||  
+|   |___ |       ||   |_| ||   |    |  | |  ||       ||   |___ |   |___     |   |  |   |_||_ |       ||       ||      _||   |___ |   |_||_ 
+|    ___||       ||    ___||   |___ |  |_|  ||_     _||    ___||    ___|    |   |  |    __  ||       ||      _||     |_ |    ___||    __  |
+|   |___ | ||_|| ||   |    |       ||       |  |   |  |   |___ |   |___     |   |  |   |  | ||   _   ||     |_ |    _  ||   |___ |   |  | |
+|_______||_|   |_||___|    |_______||_______|  |___|  |_______||_______|    |___|  |___|  |_||__| |__||_______||___| |_||_______||___|  |_|
+` + "\n"
+);
+
 initialQuestions();
 
 function initialQuestions() {
@@ -80,7 +91,17 @@ function viewRoles() {
 }
 
 function viewEmployees() {
-    db.query(`SELECT * FROM employee`, function (err, results) {
+    db.query(`
+    SELECT employee.id, employee.first_name, employee.last_name, 
+    role.title AS role, role.salary, 
+    department.name AS department
+    FROM employee
+    JOIN role
+    ON role.id = employee.role_id
+    JOIN department
+    ON role.department_id = department.id
+    ORDER BY employee.id
+    `, function (err, results) {
         if (err) return console.log(err);
         console.table(results);
         initialQuestions();
@@ -201,6 +222,37 @@ function addEmployee() {
                 INSERT INTO employee (first_name, last_name, role_id, manager_id)
                 VALUES (?, ?, ?, ?)`,
                 [response.firstName, response.lastName, response.roleName, response.manager],
+                function (err) {
+                    if (err) return console.log(err);
+                    initialQuestions();
+                })
+        });
+    });
+}
+
+function updateRole() {
+    db.query(`SELECT * FROM employee`, function (err, employees) {
+        if (err) return console.log(err);
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'updatedEmp',
+                message: 'What employee do you want to update?',
+                choices: employees.map(employee =>
+                ({
+                    name: employee.first_name + ' ' + employee.last_name,
+                    value: employee.id
+                })
+                )
+            },
+            {
+                type: 'input',
+                name: 'updatedRole',
+                message: 'What is the role ID to update the employee\'s role?'
+            }
+        ]).then((response) => {
+            db.query(`
+            UPDATE employee SET role_id = ? WHERE id = ?`, [response.updatedRole, response.updatedEmp],
                 function (err) {
                     if (err) return console.log(err);
                     initialQuestions();

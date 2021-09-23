@@ -16,11 +16,11 @@ This application creates interfaces that allow non-developers to easily view and
 To quickly update an employee ID via the command line. 
 
 ## Walkthrough
-[Link to Video](https://watch.screencastify.com/v/fe56pO0RhFpJrYdgFY60)
+[Link to Video](https://watch.screencastify.com/v/kNOPObdcWEJEFFxJNRCd)
 
 ## Screenshot
-![screenshot](assets/images/screenshot1.png)
 ![screenshot](assets/images/screenshot2.png)
+![screenshot](assets/images/screenshot1.png)
 
 -------
 
